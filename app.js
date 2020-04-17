@@ -155,7 +155,7 @@ function removeLocalTodos(data) {
 // Checck the SW support
 if ("serviceWorker" in navigator) {
   console.log("Service Worker Supported");
-  // navigator.serviceWorker.register("sw.js");
-  navigator.serviceWorker.register("sw_cache_site.js");
+  navigator.serviceWorker.register("sw.js");
+  // navigator.serviceWorker.register("sw_cache_site.js");
 }
 /** Caching with Service Worker API End */
