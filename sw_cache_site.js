@@ -3,6 +3,7 @@ const cacheName = "v2";
 // Call Install Event
 self.addEventListener("install", (e) => {
   console.log("Service Worker: Installed", new Date().toLocaleTimeString());
+  self.skipWaiting();
 });
 
 //STEP 2 ACTIVATE
@@ -40,13 +41,15 @@ self.addEventListener("fetch", (e) => {
         const responseClone = response.clone();
         //Open Cache
         caches.open(cacheName).then((cache) => {
-          //Add respose to cache
+          //Add response to cache
           cache.put(e.request, responseClone);
         });
         return response;
       })
       .catch((err) => {
+        console.log(err);
         caches.match(e.request).then((response) => {
+          console.log(response);
           return response;
         });
       })
