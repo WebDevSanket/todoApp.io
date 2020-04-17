@@ -1,9 +1,8 @@
-const cacheName = "v2";
+const cacheName = "ToDo-v2";
 //STEP 2 INSTALL
 // Call Install Event
 self.addEventListener("install", (e) => {
   console.log("Service Worker: Installed", new Date().toLocaleTimeString());
-  self.skipWaiting();
 });
 
 //STEP 2 ACTIVATE
@@ -30,28 +29,23 @@ self.addEventListener("activate", (e) => {
 });
 //STEP 3 FETCH
 // Call Fetch Event
-self.addEventListener("fetch", (e) => {
-  console.log(
-    "Service Worker: Fetching Cache" + new Date().toLocaleTimeString()
-  );
-  e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        //Make a copy/clone of response
-        const responseClone = response.clone();
-        //Open Cache
-        caches.open(cacheName).then((cache) => {
-          //Add response to cache
-          cache.put(e.request, responseClone);
-        });
-        return response;
-      })
-      .catch((err) => {
-        console.log(err);
-        caches.match(e.request).then((response) => {
-          console.log(response);
-          return response;
-        });
-      })
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.open(cacheName).then(function (cache) {
+      return cache.match(event.request).then(function (response) {
+        return (
+          response ||
+          fetch(event.request).then(function (response) {
+            try {
+              cache.put(event.request, response.clone());
+              return response;
+            } catch (e) {
+              console.log(e);
+              console.log(event.request.url);
+            }
+          })
+        );
+      });
+    })
   );
 });
