@@ -18,13 +18,13 @@ function addTodo(e) {
   e.preventDefault();
   if (todoInput.value) {
     //Save to local storage
-    if (saveLocalToDos(todoInput.value)) {
+    if (saveLocalToDos(todoInput.value.toUpperCase())) {
       //Todo div
       const todoDiv = document.createElement("div");
       todoDiv.classList.add("todo");
       //Create LI
       const newTodo = document.createElement("li");
-      newTodo.innerText = todoInput.value;
+      newTodo.innerText = todoInput.value.toUpperCase();
       newTodo.classList.add("todo-item");
       todoDiv.appendChild(newTodo);
 
@@ -38,6 +38,9 @@ function addTodo(e) {
       trashButton.innerHTML = ' <i class="fas fa-trash"></i>';
       trashButton.classList.add("trash-btn");
       todoDiv.appendChild(trashButton);
+
+      //Notify to user
+      letsNotify("add", todoInput.value.toUpperCase());
       //Append to List
       todoList.appendChild(todoDiv);
     }
@@ -61,6 +64,7 @@ function deleteCheck(e) {
   //check todo
   if (item.classList[0] === "complete-btn") {
     item.parentElement.classList.toggle("completed");
+    letsNotify("complete", item.parentElement.children[0].innerText);
   }
 }
 
@@ -147,6 +151,8 @@ function removeLocalTodos(data) {
   }
   let todoIndex = data.children[0].innerText;
   todos.splice(todos.indexOf(todoIndex), 1);
+  //Notify to user
+  letsNotify("remove", todoIndex);
   localStorage.setItem("todos", JSON.stringify(todos));
 }
 
@@ -159,3 +165,52 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw_cache_site.js");
 }
 /** Caching with Service Worker API End */
+
+/** Web Notification API Start */
+function letsNotify(action = "", value = "") {
+  if ("Notification" in window) {
+    if (Notification.permission === "granted") {
+      notificationConfig(action, value);
+    } else {
+      Notification.requestPermission()
+        .then((result) => {
+          console.log(result);
+          if (result === "granted") {
+            notificationConfig(action, value);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }
+}
+
+function notificationConfig(action, value) {
+  let title = "Sanket's TODO App";
+  // let tStamp = Date.now() + 120000; // 2mins in future
+  var bodyMsg;
+  switch (action) {
+    case "add":
+      bodyMsg = "Added to List";
+      break;
+    case "delete":
+    case "remove":
+      bodyMsg = "Removed from List";
+      break;
+    case "complete":
+      bodyMsg = "Task Completed";
+      break;
+  }
+  let options = {
+    body: value + " " + bodyMsg,
+    data: {},
+    lang: "en-US",
+    icon: "./todo-icon.png",
+    // timestamp: tStamp,
+    vibration: 800,
+  };
+  let notify = new Notification(title, options);
+  setTimeout(notify.close.bind(notify), 3000); // Close after 3s
+}
+/** Web Notification API End */
