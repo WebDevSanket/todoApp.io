@@ -20,7 +20,7 @@ function addTodo(e) {
   //Prevent form from submitting
   e.preventDefault();
   suggestionsList.style.display = 'none';
-  if (todoInput.value) {
+  if (todoInput.value && todoInput.value !="") {
     setSuggestions(todoInput.value.toUpperCase());
     //Save to local storage
     if (saveLocalToDos(todoInput.value.toUpperCase())) {
