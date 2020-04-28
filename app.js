@@ -3,6 +3,8 @@ const todoInput = document.querySelector(".todo-input");
 const todoButton = document.querySelector(".todo-button");
 const todoList = document.querySelector(".todo-list");
 const filterOption = document.querySelector(".filter-todo");
+const suggestionsList = document.querySelector(".suggestions-list");
+const suggestion = document.querySelectorAll(".suggestions-list h4");
 
 //Event Listeners
 
@@ -10,13 +12,16 @@ document.addEventListener("DOMContentLoaded", getToDos);
 todoButton.addEventListener("click", addTodo);
 todoList.addEventListener("click", deleteCheck);
 filterOption.addEventListener("click", filterTodo);
+todoInput.addEventListener("keyup", getSuggestions);
 
 //Functions
 
 function addTodo(e) {
   //Prevent form from submitting
   e.preventDefault();
+  suggestionsList.style.display = 'none';
   if (todoInput.value) {
+    setSuggestions(todoInput.value.toUpperCase());
     //Save to local storage
     if (saveLocalToDos(todoInput.value.toUpperCase())) {
       //Todo div
@@ -95,19 +100,70 @@ function filterTodo(e) {
 
 function saveLocalToDos(data) {
   let todos;
-  if (localStorage.getItem("todos") === null) {
-    todos = [];
-  } else {
-    todos = JSON.parse(localStorage.getItem("todos"));
-  }
+    if (localStorage.getItem("todos") === null) {
+      todos = [];     
+    } else {
+      todos = JSON.parse(localStorage.getItem("todos"));
+    }
+  
+    
   if (todos.indexOf(data) == -1) {
-    todos.push(data);
-    localStorage.setItem("todos", JSON.stringify(todos));
-    return true;
-  } else {
-    return false;
-  }
+      todos.push(data);
+      localStorage.setItem("todos", JSON.stringify(todos));
+      return true;
+    } else {
+      return false;
+    }
 }
+
+function setSuggestions(values){
+  let searchSuggestions = [];
+  //test
+  if(localStorage.getItem("searchSuggestions")){
+    searchSuggestions = JSON.parse(localStorage.getItem("searchSuggestions"));
+  }
+  searchSuggestions.push(values);
+  localStorage.setItem('searchSuggestions',JSON.stringify(searchSuggestions));
+}
+
+function getSuggestions () { 
+  let reqValue = todoInput.value;
+  var suggestions;
+  if(localStorage.getItem("searchSuggestions")){
+    suggestions = JSON.parse(localStorage.getItem("searchSuggestions"));
+    let matches = suggestions.filter(items => {
+      const regex = new RegExp(`^${reqValue}`,'gi');
+      return items.match(regex);
+    });
+    if(reqValue.length === 0){
+      matches = [];
+      suggestionsList.style.display = 'none';
+    }
+    outputSuggestions(matches);
+  }   
+ }
+
+function outputSuggestions(matches){
+  if(matches.length){
+    suggestionsList.style.display = 'block';
+    const htmlEl = matches.map(match => {
+      return `
+        <h4>${match}</h4>
+      `
+    }).join('');
+    // console.log(htmlEl);
+    suggestionsList.innerHTML = htmlEl;
+    var suggestion = document.querySelectorAll(".suggestions-list h4");    
+    for(let i=0; i < suggestion.length; i++ ){
+      (function(i){
+        suggestion[i].addEventListener('click',function(){
+          todoInput.value = suggestion[i].innerText;
+          suggestionsList.style.display = 'none';
+        })
+      })(i)
+    }
+  }
+} 
 
 function getToDos() {
   let todos;
